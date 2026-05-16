@@ -1,62 +1,105 @@
-# Multi-Agent Life-OS: Project Blueprint
+# Multi-Agent Life-OS 🧠
 
-## 1. System Overview
-A local, LangGraph-powered multi-agent system running on local LLMs (Ollama/LM Studio). The system consists of four specialized "Teams" coordinated by a Central Supervisor.
+A production-grade, LangGraph-powered multi-agent system designed to act as your autonomous personal assistant. The system consists of specialized "Teams" coordinated by a Central Supervisor, running entirely on local LLMs (Ollama) to maintain strict **Zero-Cloud Data Privacy**.
 
-### Core Architecture
-- **Framework:** LangGraph (State Machine)
-- **Inference:** Local LLM via OpenAI-compatible API (Port 11434/1234)
-- **Database:** SQLite (Local Persistence & KPI tracking)
-- **Notification:** Telegram Bot API / Discord Webhook
+It features an always-on WhatsApp interface, allowing you to trigger agents, query data, and take practice quizzes from anywhere in the world.
 
 ---
 
-## 2. Team Definitions
+## 1. System Architecture
 
-### Team A: The Quant (Trading & Stocks)
-* **Fundamental Analyst:** Evaluates NASDAQ/NSE stock health.
-* **Sentiment Agent:** Scrapes financial news for bullish/bearish signals.
-* **Reporter:** Generates a daily summary of portfolio performance.
-
-### Team B: The Career Catalyst (Job Search & Senior Prep)
-* **Job Scraper:** Monitors LinkedIn/Indeed for "Senior Full Stack" roles.
-* **Resume Tailor:** Auto-aligns CV with JD keywords using local LLM.
-* **Senior Mentor:** Tracks LeetCode progress and provides System Design feedback (Mermaid.js).
-* **Syllabus Tracker:** Maps JD requirements to a learning "Confidence Score" (1-10).
-
-### Team C: The Household Accountant (Personal Finance)
-* **Statement Parser:** Extracts data from Bank/Credit Card PDFs (OCR-ready).
-* **KPI Engine:** Calculates Burn Rate, Savings Rate, and Investment Ratios.
-* **Auditor:** Flags unusual spending or upcoming bill cycles.
-
-### Team D: The Communicator (Event-Driven Notifications)
-* **Daily Digest:** Aggregates outputs from Team A, B, and C at 08:00 and 20:00.
-* **Alert Agent:** Triggers immediate messages for high-priority stock moves or interview invites.
+- **Framework:** [LangGraph](https://python.langchain.com/v0.1/docs/langgraph/) (Stateful Multi-Agent Workflows)
+- **Inference (Zero-Cloud):** Local LLMs via [Ollama](https://ollama.com/) (Using `llama3` for reasoning, `llava` for vision)
+- **Persistence (Short-term):** Local SQLite (`life_os.db`)
+- **Semantic Memory (Long-term):** ChromaDB (Local Vector Store)
+- **Communication:** Twilio WhatsApp Webhook via FastAPI & ngrok
+- **Always-On Daemon:** Linux `systemd` configuration
 
 ---
 
-## 3. Database Schema (SQLite)
+## 2. The Teams (Agents)
 
-| Table | Purpose | Key Fields |
-| :--- | :--- | :--- |
-| `market_reports` | Stock History | `ticker`, `sentiment_score`, `timestamp` |
-| `applications` | Job Pipeline | `company`, `status`, `jd_text`, `resume_version` |
-| `skill_matrix` | Learning KPIs | `topic`, `confidence_level`, `last_practiced` |
-| `fin_statements` | Usage KPIs | `category`, `amount`, `date`, `account_source` |
+### 📈 Team A: The Quant (Trading & Stocks) - *[V2 Active]*
+- **Adversarial Debate:** Employs Bull vs. Bear researchers to debate stock prospects based on real `yfinance` data.
+- **Risk Management:** Paper trading engine with a simulated $100k dummy portfolio.
+- **Vector Memory:** Saves trade rationale to ChromaDB to inform future decisions.
+
+### 🚗 Team E: The DMV Tutor - *[V2 Active]*
+- **Vision PDF Parsing:** Uses `PyMuPDF` and `llava` to extract CA DMV handbook text and Road Sign images to generate dynamic quizzes.
+- **Stateful Interactive Quiz:** Uses LangGraph `SqliteSaver` checkpointers to ask you questions one-at-a-time via WhatsApp, remembering what questions you have historically failed.
+- **Daily Ping:** Uses `schedule` to run a background thread that pings you every day at 11:00 AM to practice.
+
+### 💼 Team B: The Career Catalyst - *[V1 Mock]*
+- Resume tailoring, Job scraping, and Senior interview prep (System Design).
+
+### 🏦 Team C: The Household Accountant - *[V1 Mock]*
+- Bank statement OCR parsing, KPI calculations (Burn Rate), and budget auditing.
+
+### 📡 Team D: The Communicator - *[V2 Active]*
+- A `FastAPI` webhook that listens to Twilio WhatsApp payloads, processes them through the `main.py` Supervisor Router, and replies with rich text and images.
 
 ---
 
-## 4. Implementation Roadmap
+## 3. Installation & Setup
 
-1.  **Phase 1 (Infrastructure):** Setup `llm_factory.py` to route to local Ollama instance.
-2.  **Phase 2 (Memory):** Implement the SQLite storage layer for cross-team state sharing.
-3.  **Phase 3 (Agent Expansion):** Clone `trading_graph.py` to create `career_graph.py` and `finance_graph.py`.
-4.  **Phase 4 (Supervisor):** Build the entry-point node that routes user queries to the correct sub-graph.
-5.  **Phase 5 (Notifications):** Connect the Telegram Bot tool to the `Daily Digest` node.
+### Requirements
+- Ubuntu/Linux Environment
+- Python 3.10+
+- [Ollama](https://ollama.com/download) installed locally
+
+### Step 1: Clone & Install
+```bash
+git clone <your-repo-url>
+cd Agents
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+### Step 2: Download Local AI Models
+Open a terminal and pull the required models into your local Ollama instance:
+```bash
+ollama pull llama3
+ollama pull llava
+```
+
+### Step 3: Populate the Database (Optional)
+If you want to use the DMV Tutor, download the CA DMV Handbook to `data/dmv.pdf` and run:
+```bash
+python teams/dmv_tutor/pdf_parser.py
+```
+*(This will use LLaVA to read the book, look at the signs, and build a massive SQLite database of questions).*
 
 ---
 
-## 5. Senior Role Skill Integration
-* **Observability:** Implement structured logging for every agent thought process.
-* **Scalability:** Use a message-queue pattern (even locally) for PDF parsing tasks.
-* **Security:** Ensure all bank statements remain in the local `data/` directory (Zero-Cloud).
+## 4. Running the System (WhatsApp Mode)
+
+To make the system "Always-On" and accessible from your phone via WhatsApp:
+
+### Step 1: Prevent Sleep
+Ensure your Ubuntu machine doesn't go to sleep and kill the server:
+```bash
+sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
+```
+
+### Step 2: Setup the systemd Daemon
+```bash
+sudo ln -s $(pwd)/deployment/life-os.service /etc/systemd/system/life-os.service
+sudo systemctl daemon-reload
+sudo systemctl enable life-os.service
+sudo systemctl start life-os.service
+```
+*Your Life-OS is now permanently running in the background on port 8000!*
+
+### Step 3: Connect to the Internet (ngrok)
+In a terminal, run an ngrok tunnel to expose port 8000 securely:
+```bash
+ngrok http 8000
+```
+Copy the `https://xyz.ngrok.app` URL it gives you.
+
+### Step 4: Twilio Setup
+1. Create a free Twilio account and navigate to **Messaging > Try it out > Send a WhatsApp message**.
+2. Under "Sandbox settings", paste your ngrok URL into the "When a message comes in" webhook field like this: `https://xyz.ngrok.app/whatsapp`
+3. Send the join code (e.g. `join fluffy-raccoon`) from your personal phone to the Twilio number.
+4. Send *"give me a stock report"* and watch the Quant team execute on your local PC!
