@@ -1,7 +1,8 @@
 langchain>=0.1.0
 langgraph>=0.0.10
-sqlite3
 python-telegram-bot>=20.0
 # Add integrations for local LLMs via Ollama/LM Studio compatible endpoints
 langchain-openai
 langchain-community
+langchain-ollama
+python-dotenv
