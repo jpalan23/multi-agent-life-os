@@ -38,4 +38,11 @@
   - Added an LLM-based classifier to route queries to `Quant`, `Career`, `Finance`, or `Unknown`.
   - Integrated the specific team graphs into the routing logic.
 
-- **Next steps:** Phase 5 (Notifications) connecting Telegram Bot API to the outputs.
+## Phase 5: Notifications
+- **Goal:** Connect the Telegram Bot tool to the Daily Digest node.
+- **Actions taken:**
+  - Implemented `teams/communicator/communicator_graph.py`.
+  - Added a `daily_digest` node that aggregates DB data.
+  - Added a `telegram_bot` node that reads environment variables and dispatches notifications via Telegram API.
+
+- **Status:** Initial architecture implementation is complete! All 5 phases from the roadmap are now laid out in code. The next logical step is building a real data pipeline, actual scraping, and hooking into live LLMs for rigorous testing.
