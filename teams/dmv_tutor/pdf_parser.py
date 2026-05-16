@@ -82,10 +82,40 @@ def populate_db_with_pdf(pdf_path: str):
                 
     print(f"Successfully generated and inserted {total_added} questions into the database.")
 
+def download_dmv_pdf(output_path: str):
+    """Downloads the CA DMV handbook automatically if it doesn't exist."""
+    import requests
+    print(f"PDF not found. Attempting to download the CA DMV handbook to {output_path}...")
+    
+    # Official CA DMV Handbook URL (might redirect or update based on year)
+    url = "https://www.dmv.ca.gov/portal/file/california-driver-handbook-pdf/"
+    
+    # Ensure data directory exists
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    
+    try:
+        # Use headers to pretend to be a browser, DMV site might block raw python requests
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        response = requests.get(url, headers=headers, stream=True)
+        response.raise_for_status()
+        
+        with open(output_path, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+        print("Download successful!")
+        return True
+    except Exception as e:
+        print(f"Failed to download PDF automatically: {e}")
+        print("Please manually download the handbook and place it at: " + output_path)
+        return False
+
 if __name__ == "__main__":
     import sys
     pdf_file = sys.argv[1] if len(sys.argv) > 1 else "data/dmv.pdf"
-    if os.path.exists(pdf_file):
-        populate_db_with_pdf(pdf_file)
-    else:
-        print(f"Error: PDF file not found at {pdf_file}. Please place the DMV handbook there.")
+    
+    if not os.path.exists(pdf_file):
+        downloaded = download_dmv_pdf(pdf_file)
+        if not downloaded:
+            sys.exit(1)
+            
+    populate_db_with_pdf(pdf_file)
