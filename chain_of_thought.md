@@ -23,4 +23,19 @@
   - Created tables for `market_reports`, `applications`, `skill_matrix`, and `fin_statements`.
   - Tested db connection and basic query execution.
 
-- **Next steps:** Move to Phase 3 (Agent Expansion), creating the LangGraph sub-graphs for each team.
+## Phase 3: Agent Expansion
+- **Goal:** Clone `trading_graph.py` to create `career_graph.py` and `finance_graph.py`.
+- **Actions taken:**
+  - Implemented `teams/quant/trading_graph.py` with fundamental analyst, sentiment agent, and reporter nodes.
+  - Implemented `teams/career/career_graph.py` with job scraper, resume tailor, senior mentor, and syllabus tracker nodes.
+  - Implemented `teams/finance/finance_graph.py` with statement parser, kpi engine, and auditor nodes.
+  - Integrated SQLite DB operations into the graph nodes.
+
+## Phase 4: Supervisor
+- **Goal:** Build the entry-point node that routes user queries to the correct sub-graph.
+- **Actions taken:**
+  - Implemented `main.py` containing `supervisor_router` and `run_system`.
+  - Added an LLM-based classifier to route queries to `Quant`, `Career`, `Finance`, or `Unknown`.
+  - Integrated the specific team graphs into the routing logic.
+
+- **Next steps:** Phase 5 (Notifications) connecting Telegram Bot API to the outputs.
