@@ -34,6 +34,27 @@ class DBManager:
             summary TEXT
         );
 
+        -- Quant V2: Portfolio and Paper Trading
+        CREATE TABLE IF NOT EXISTS portfolio (
+            asset TEXT PRIMARY KEY,
+            quantity REAL NOT NULL,
+            average_price REAL DEFAULT 0.0,
+            last_updated DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+        
+        -- Insert dummy money (100k USD) if not exists
+        INSERT OR IGNORE INTO portfolio (asset, quantity) VALUES ('USD', 100000.0);
+
+        CREATE TABLE IF NOT EXISTS trade_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ticker TEXT NOT NULL,
+            action TEXT NOT NULL, -- 'BUY' or 'SELL'
+            quantity REAL NOT NULL,
+            price REAL NOT NULL,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            reasoning TEXT
+        );
+
         -- Team B: The Career Catalyst
         CREATE TABLE IF NOT EXISTS applications (
             id INTEGER PRIMARY KEY AUTOINCREMENT,

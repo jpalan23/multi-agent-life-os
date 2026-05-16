@@ -1,95 +1,92 @@
-from typing import TypedDict, Annotated, Sequence, Optional
+import os
+import sqlite3
+from typing import Literal
 from langgraph.graph import StateGraph, START, END
-from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
-from core.llm_factory import get_llm
-from core.db_manager import db
-import operator
+from langgraph.checkpoint.sqlite import SqliteSaver
 
-# Define the State for the Quant Team
-class QuantState(TypedDict):
-    messages: Annotated[Sequence[BaseMessage], operator.add]
-    ticker: str
-    fundamental_data: Optional[str]
-    sentiment_data: Optional[str]
-    final_report: Optional[str]
+from teams.quant.state import QuantState
+from teams.quant.nodes import (
+    market_analyst,
+    fundamental_analyst,
+    bull_researcher,
+    bear_researcher,
+    trader_decision,
+    risk_manager,
+    execution_agent
+)
 
-# Define the Nodes (Agents)
-def fundamental_analyst(state: QuantState) -> QuantState:
-    """Evaluates stock health based on basic fundamental mock data."""
-    print(f"[Fundamental Analyst] Analyzing {state['ticker']}...")
-    # In a real app, we would fetch API data here (e.g., yfinance)
-    mock_fundamentals = f"{state['ticker']} has a healthy P/E ratio and strong quarterly revenue growth."
+def debate_router(state: QuantState) -> Literal["trader_decision", "bull_researcher"]:
+    """Routes the debate. If max rounds reached, goes to trader. Else, continues debate."""
+    round = state.get("debate_round", 1)
+    max_rounds = state.get("max_debate_rounds", 2)
     
-    # We could use the LLM to format/analyze the data
-    llm = get_llm(temperature=0.1)
-    prompt = f"Analyze the following fundamental data for {state['ticker']}: {mock_fundamentals}. Keep it brief."
-    response = llm.invoke([HumanMessage(content=prompt)])
-    
-    return {"fundamental_data": response.content}
+    if round > max_rounds:
+        return "trader_decision"
+    return "bull_researcher"
 
-def sentiment_agent(state: QuantState) -> QuantState:
-    """Scrapes/evaluates financial news for sentiment."""
-    print(f"[Sentiment Agent] Checking news for {state['ticker']}...")
-    # In a real app, this would scrape news sites
-    mock_news = f"Recent news for {state['ticker']} shows positive momentum and new product launches."
-    
-    llm = get_llm(temperature=0.1)
-    prompt = f"Determine the sentiment (Bullish, Bearish, or Neutral) based on this news: {mock_news}. Explain briefly."
-    response = llm.invoke([HumanMessage(content=prompt)])
-    
-    return {"sentiment_data": response.content}
-
-def reporter(state: QuantState) -> QuantState:
-    """Generates a daily summary and saves it to the database."""
-    print(f"[Reporter] Generating report for {state['ticker']}...")
-    
-    llm = get_llm(temperature=0.3)
-    prompt = f"""
-    Create a final investment report for {state['ticker']} based on:
-    Fundamental Analysis: {state['fundamental_data']}
-    Sentiment Analysis: {state['sentiment_data']}
-    
-    Provide a clear BUY, HOLD, or SELL recommendation.
-    """
-    response = llm.invoke([HumanMessage(content=prompt)])
-    final_report = response.content
-    
-    # Extract sentiment score (Mocking a 0-100 score for DB based on content)
-    sentiment_score = 80.0 if "Bullish" in str(state['sentiment_data']) else (20.0 if "Bearish" in str(state['sentiment_data']) else 50.0)
-    
-    # Save to database
-    db.execute_query(
-        "INSERT INTO market_reports (ticker, sentiment_score, summary) VALUES (?, ?, ?)",
-        (state['ticker'], sentiment_score, final_report)
-    )
-    
-    return {
-        "final_report": final_report,
-        "messages": [AIMessage(content=final_report)]
-    }
-
-# Build the Graph
 def build_quant_graph():
     builder = StateGraph(QuantState)
     
     # Add nodes
+    builder.add_node("market_analyst", market_analyst)
     builder.add_node("fundamental_analyst", fundamental_analyst)
-    builder.add_node("sentiment_agent", sentiment_agent)
-    builder.add_node("reporter", reporter)
+    builder.add_node("bull_researcher", bull_researcher)
+    builder.add_node("bear_researcher", bear_researcher)
+    builder.add_node("trader_decision", trader_decision)
+    builder.add_node("risk_manager", risk_manager)
+    builder.add_node("execution_agent", execution_agent)
     
-    # Define edges (Flow)
+    # Define edges
+    builder.add_edge(START, "market_analyst")
     builder.add_edge(START, "fundamental_analyst")
-    builder.add_edge("fundamental_analyst", "sentiment_agent")
-    builder.add_edge("sentiment_agent", "reporter")
-    builder.add_edge("reporter", END)
     
-    return builder.compile()
+    # Start debate after analysis
+    builder.add_edge("market_analyst", "bull_researcher")
+    builder.add_edge("fundamental_analyst", "bull_researcher")
+    
+    # Debate loop
+    builder.add_edge("bull_researcher", "bear_researcher")
+    builder.add_conditional_edges("bear_researcher", debate_router)
+    
+    # Execution flow
+    builder.add_edge("trader_decision", "risk_manager")
+    builder.add_edge("risk_manager", "execution_agent")
+    builder.add_edge("execution_agent", END)
+    
+    # Setup Checkpointer (SqliteSaver)
+    db_path = os.path.join("data", "quant_checkpoints.db")
+    os.makedirs(os.path.dirname(db_path), exist_ok=True)
+    conn = sqlite3.connect(db_path, check_same_thread=False)
+    memory = SqliteSaver(conn)
+    
+    return builder.compile(checkpointer=memory)
 
 # For easy testing
 if __name__ == "__main__":
-    graph = build_quant_graph()
-    initial_state = {"messages": [], "ticker": "AAPL", "fundamental_data": None, "sentiment_data": None, "final_report": None}
+    from datetime import datetime
+    import sys
     
-    for s in graph.stream(initial_state):
-        print(s)
-        print("---")
+    graph = build_quant_graph()
+    
+    ticker = sys.argv[1] if len(sys.argv) > 1 else "AAPL"
+    
+    initial_state = {
+        "messages": [], 
+        "ticker": ticker, 
+        "date": datetime.now().strftime("%Y-%m-%d"),
+        "fundamental_data": None, 
+        "market_data": None, 
+        "bull_arguments": None,
+        "bear_arguments": None,
+        "debate_round": 1,
+        "max_debate_rounds": 2,
+        "risk_assessment": None,
+        "risk_approved": False,
+        "final_decision": None,
+        "execution_details": None
+    }
+    
+    config = {"configurable": {"thread_id": f"test_run_{ticker}_{initial_state['date']}"}}
+    
+    for s in graph.stream(initial_state, config=config):
+        print("--- Node completed ---")

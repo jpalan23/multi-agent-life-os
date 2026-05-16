@@ -44,15 +44,35 @@ class LLMFactory:
         )
 
     @classmethod
-    def get_default_llm(cls, temperature: float = 0.0):
+    def get_quick_llm(cls, temperature: float = 0.0):
         """
-        Returns the default LLM based on the DEFAULT_LLM_PROVIDER env variable.
+        Returns the quick LLM for simple parsing and extraction.
         """
         provider = os.getenv("DEFAULT_LLM_PROVIDER", "ollama").lower()
+        model_name = os.getenv("QUICK_LLM_MODEL", "llama3")
+        
         if provider == "lm_studio":
-            return cls.get_lm_studio(temperature=temperature)
-        return cls.get_ollama(temperature=temperature)
+            return cls.get_lm_studio(model=model_name, temperature=temperature)
+        return cls.get_ollama(model=model_name, temperature=temperature)
 
-# Expose a default instance or function for easy importing
+    @classmethod
+    def get_deep_llm(cls, temperature: float = 0.0):
+        """
+        Returns the deep LLM for complex reasoning and debate.
+        """
+        provider = os.getenv("DEFAULT_LLM_PROVIDER", "ollama").lower()
+        model_name = os.getenv("DEEP_LLM_MODEL", "deepseek-r1")
+        
+        if provider == "lm_studio":
+            return cls.get_lm_studio(model=model_name, temperature=temperature)
+        return cls.get_ollama(model=model_name, temperature=temperature)
+
+# Expose instances for easy importing
 def get_llm(temperature: float = 0.0):
-    return LLMFactory.get_default_llm(temperature=temperature)
+    return LLMFactory.get_quick_llm(temperature=temperature)
+
+def get_quick_llm(temperature: float = 0.0):
+    return LLMFactory.get_quick_llm(temperature=temperature)
+
+def get_deep_llm(temperature: float = 0.0):
+    return LLMFactory.get_deep_llm(temperature=temperature)
