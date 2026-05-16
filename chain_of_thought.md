@@ -45,4 +45,23 @@
   - Added a `daily_digest` node that aggregates DB data.
   - Added a `telegram_bot` node that reads environment variables and dispatches notifications via Telegram API.
 
-- **Status:** Initial architecture implementation is complete! All 5 phases from the roadmap are now laid out in code. The next logical step is building a real data pipeline, actual scraping, and hooking into live LLMs for rigorous testing.
+- **Status:** Initial architecture implementation is complete! All 5 phases from the roadmap are now laid out in code.
+- **V2 Upgrades Complete:** Quant Team (real data, chromaDB, debates), DMV Tutor Team (vision parsing, scheduler).
+
+## Pending Upgrades (Things Left to Do)
+
+### 1. Upgrade the Career Catalyst (Team B) to V2
+- Implement real web scraping (using BeautifulSoup, Selenium, or an API) to automatically pull Job Descriptions from links.
+- Set up an automated resume-tailoring pipeline that matches the job description against the `skill_matrix` and outputs a custom PDF/Markdown resume.
+
+### 2. Upgrade the Household Accountant (Finance Team) to V2
+- Implement a real PDF/CSV parser to read bank/credit card statements.
+- Use the Quick LLM to auto-categorize line-item transactions.
+- Calculate real KPI metrics (Burn Rate, Savings Rate) and flag unusual subscriptions.
+
+### 3. Finalize the Communicator / Daily Digest
+- Wire the `daily_digest` node to aggregate real data from other teams (Quant portfolio performance, Career pending applications, Finance budget status).
+- Format and send a rich daily markdown report to Telegram.
+
+### 4. End-to-End System Testing
+- Run the `main.py` Supervisor with a live local Ollama instance to rigorously test accurate routing of ambiguous queries to the correct specialized graphs without breaking state.
