@@ -4,6 +4,8 @@ from core.llm_factory import get_llm
 from teams.quant.trading_graph import build_quant_graph
 from teams.career.career_graph import build_career_graph
 from teams.finance.finance_graph import build_finance_graph
+from teams.dmv_tutor.tutor_graph import build_tutor_graph
+from teams.dmv_tutor.scheduler import start_scheduler
 
 class SupervisorState(TypedDict):
     messages: Sequence[BaseMessage]
@@ -20,11 +22,12 @@ def supervisor_router(query: str) -> str:
     - Quant: For stock market, trading, fundamentals, and finance news.
     - Career: For job searching, resume tailoring, and interview prep.
     - Finance: For personal finance, statements, burn rate, and budgets.
+    - Tutor: For DMV practice quizzes, driving written test, or replying 'ready' to the daily ping.
     - Unknown: If it doesn't fit the above.
     
     Query: "{query}"
     
-    Reply with ONLY the team name (Quant, Career, Finance, or Unknown).
+    Reply with ONLY the team name (Quant, Career, Finance, Tutor, or Unknown).
     """
     response = llm.invoke([HumanMessage(content=prompt)])
     route = response.content.strip().replace(".", "").replace('"', '')
@@ -59,11 +62,24 @@ def run_system(query: str):
         for s in graph.stream(state):
             print(list(s.keys())[0], "completed.")
             
+    elif "Tutor" in route:
+        graph = build_tutor_graph()
+        # For a real implementation, thread_id should be tied to the user's ID
+        config = {"configurable": {"thread_id": "dmv_tutor_session"}}
+        print("--- Executing DMV Tutor Graph ---")
+        for s in graph.stream({"messages": [HumanMessage(content=query)]}, config=config):
+            for node, state in s.items():
+                if 'messages' in state:
+                    print(f"[{node}]: {state['messages'][-1].content}")
+            
     else:
         print("[Supervisor] I am not sure how to handle this query.")
 
 if __name__ == "__main__":
     import sys
+    
+    # Start the background scheduler for daily pings
+    start_scheduler()
     
     if len(sys.argv) > 1:
         user_query = " ".join(sys.argv[1:])

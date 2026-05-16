@@ -81,6 +81,18 @@ class DBManager:
             account_source TEXT NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
+
+        -- Team E: The DMV Tutor
+        CREATE TABLE IF NOT EXISTS dmv_questions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            category TEXT NOT NULL,
+            question_text TEXT NOT NULL,
+            options TEXT NOT NULL, -- JSON string
+            correct_answer TEXT NOT NULL,
+            times_asked INTEGER DEFAULT 0,
+            times_failed INTEGER DEFAULT 0,
+            last_asked DATETIME
+        );
         """
         
         # Ensure the directory exists

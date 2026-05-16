@@ -9,3 +9,5 @@ python-dotenv
 yfinance
 chromadb
 langgraph-checkpoint-sqlite
+pypdf
+schedule
