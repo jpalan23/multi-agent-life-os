@@ -33,47 +33,46 @@ def supervisor_router(query: str) -> str:
     route = response.content.strip().replace(".", "").replace('"', '')
     return route
 
-def run_system(query: str):
-    """Entry point to process a user query."""
+def run_system(query: str, thread_id: str = "default_session") -> dict:
+    """Entry point to process a user query and return a dict with text and optional image_path."""
     print(f"[Supervisor] Received Query: {query}")
     route = supervisor_router(query)
     print(f"[Supervisor] Routing to: {route} Team")
     
-    # We use mock data for the specific team states since it's just routing test
+    final_response = {"text": "Sorry, I couldn't process that.", "image_path": None}
+    
     if "Quant" in route:
         graph = build_quant_graph()
-        # In a real app we'd extract the ticker from the query
-        state = {"messages": [], "ticker": "AAPL", "fundamental_data": None, "sentiment_data": None, "final_report": None}
-        print("--- Executing Quant Graph ---")
-        for s in graph.stream(state):
-            print(list(s.keys())[0], "completed.")
+        state = {"messages": [], "ticker": "NVDA", "date": "2026-05-16"} # Hardcoded for now
+        config = {"configurable": {"thread_id": thread_id}}
+        for s in graph.stream(state, config=config):
+            pass
+        curr_state = graph.get_state(config).values
+        if curr_state.get('execution_details'):
+            final_response["text"] = f"Quant Decision: {curr_state.get('final_decision')}\n{curr_state.get('execution_details')}"
+        else:
+            final_response["text"] = "Quant analysis completed."
             
     elif "Career" in route:
-        graph = build_career_graph()
-        state = {"messages": [], "job_description": query, "scraped_jobs": None, "resume_tailored": None, "mentor_feedback": None, "confidence_score": None}
-        print("--- Executing Career Graph ---")
-        for s in graph.stream(state):
-            print(list(s.keys())[0], "completed.")
+        final_response["text"] = "Career Catalyst is currently mocked in V1."
             
     elif "Finance" in route:
-        graph = build_finance_graph()
-        state = {"messages": [], "statement_path": "latest_statement.pdf", "parsed_data": None, "kpi_metrics": None, "audit_flags": None}
-        print("--- Executing Finance Graph ---")
-        for s in graph.stream(state):
-            print(list(s.keys())[0], "completed.")
+        final_response["text"] = "Household Accountant is currently mocked in V1."
             
     elif "Tutor" in route:
         graph = build_tutor_graph()
-        # For a real implementation, thread_id should be tied to the user's ID
-        config = {"configurable": {"thread_id": "dmv_tutor_session"}}
-        print("--- Executing DMV Tutor Graph ---")
+        config = {"configurable": {"thread_id": f"dmv_tutor_{thread_id}"}}
         for s in graph.stream({"messages": [HumanMessage(content=query)]}, config=config):
             for node, state in s.items():
                 if 'messages' in state:
-                    print(f"[{node}]: {state['messages'][-1].content}")
+                    msg = state['messages'][-1]
+                    final_response["text"] = msg.content
+                    final_response["image_path"] = msg.additional_kwargs.get("image_path")
             
     else:
-        print("[Supervisor] I am not sure how to handle this query.")
+        final_response["text"] = "[Supervisor] I am not sure how to handle this query."
+        
+    return final_response
 
 if __name__ == "__main__":
     import sys

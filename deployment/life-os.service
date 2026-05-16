@@ -1,0 +1,23 @@
+[Unit]
+Description=Life-OS Multi-Agent WhatsApp Webhook & Scheduler
+After=network.target
+
+[Service]
+User=jay
+WorkingDirectory=/mnt/ai_shared/UserFolders/Desktop/Agents
+Environment="PATH=/mnt/ai_shared/UserFolders/Desktop/Agents/venv/bin"
+
+# We use the virtual environment's uvicorn to start the FastAPI app
+ExecStart=/mnt/ai_shared/UserFolders/Desktop/Agents/venv/bin/uvicorn teams.communicator.whatsapp_listener:app --host 0.0.0.0 --port 8000
+
+# Ensure the service restarts if it crashes
+Restart=always
+RestartSec=5
+
+# Logging
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=life-os
+
+[Install]
+WantedBy=multi-user.target

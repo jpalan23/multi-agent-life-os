@@ -11,3 +11,7 @@ chromadb
 langgraph-checkpoint-sqlite
 PyMuPDF
 schedule
+fastapi
+uvicorn
+twilio
+python-multipart
