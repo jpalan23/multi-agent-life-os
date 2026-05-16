@@ -64,7 +64,13 @@ def ask_question(state: TutorState) -> TutorState:
     msg_text += "\nReply with the letter of your answer (e.g., 'A')."
     
     print(f"[Tutor] Asking question {idx+1}")
-    return {"messages": [AIMessage(content=msg_text)]}
+    
+    kwargs = {}
+    if q.get('image_path'):
+        kwargs["image_path"] = q['image_path']
+        print(f"[Tutor] Including image: {q['image_path']}")
+        
+    return {"messages": [AIMessage(content=msg_text, additional_kwargs=kwargs)]}
 
 def grade_answer(state: TutorState) -> TutorState:
     """Grades the user's latest response."""

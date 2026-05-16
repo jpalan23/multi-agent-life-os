@@ -67,6 +67,14 @@ class LLMFactory:
             return cls.get_lm_studio(model=model_name, temperature=temperature)
         return cls.get_ollama(model=model_name, temperature=temperature)
 
+    @classmethod
+    def get_vision_llm(cls, temperature: float = 0.2):
+        """
+        Returns a Vision-capable LLM. Defaults to LLaVA via Ollama.
+        """
+        model_name = os.getenv("VISION_LLM_MODEL", "llava")
+        return cls.get_ollama(model=model_name, temperature=temperature)
+
 # Expose instances for easy importing
 def get_llm(temperature: float = 0.0):
     return LLMFactory.get_quick_llm(temperature=temperature)
@@ -76,3 +84,6 @@ def get_quick_llm(temperature: float = 0.0):
 
 def get_deep_llm(temperature: float = 0.0):
     return LLMFactory.get_deep_llm(temperature=temperature)
+
+def get_vision_llm(temperature: float = 0.2):
+    return LLMFactory.get_vision_llm(temperature=temperature)

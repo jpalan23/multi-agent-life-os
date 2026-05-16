@@ -89,6 +89,7 @@ class DBManager:
             question_text TEXT NOT NULL,
             options TEXT NOT NULL, -- JSON string
             correct_answer TEXT NOT NULL,
+            image_path TEXT,
             times_asked INTEGER DEFAULT 0,
             times_failed INTEGER DEFAULT 0,
             last_asked DATETIME
