@@ -15,7 +15,7 @@ class SupervisorState(TypedDict):
 
 def supervisor_router(query: str) -> str:
     """Uses LLM to determine the appropriate team for the query."""
-    llm = get_llm(temperature=0.0)
+    llm = get_llm(temperature=0.0, keep_alive="5m")
     prompt = f"""
     You are the Central Supervisor for a Multi-Agent Life-OS.
     Route the following query to one of the specific teams:

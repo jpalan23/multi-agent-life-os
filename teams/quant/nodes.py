@@ -17,7 +17,7 @@ def fundamental_analyst(state: QuantState) -> QuantState:
     info = get_stock_info(state['ticker'])
     
     # Use Quick LLM to summarize
-    llm = get_quick_llm(temperature=0.1)
+    llm = get_quick_llm(temperature=0.1, keep_alive="5m")
     prompt = f"Summarize the following fundamental data for {state['ticker']} into a concise analyst report:\n{info}"
     response = llm.invoke([HumanMessage(content=prompt)])
     
@@ -26,7 +26,7 @@ def fundamental_analyst(state: QuantState) -> QuantState:
 def bull_researcher(state: QuantState) -> QuantState:
     """Argues the bull case based on data and previous bear arguments."""
     print(f"[Bull Researcher] Preparing bull thesis (Round {state['debate_round']})...")
-    llm = get_deep_llm(temperature=0.3)
+    llm = get_deep_llm(temperature=0.3, keep_alive="5m")
     
     context = f"Market Data: {state['market_data']}\nFundamentals: {state['fundamental_data']}"
     if state['bear_arguments']:
@@ -40,7 +40,7 @@ def bull_researcher(state: QuantState) -> QuantState:
 def bear_researcher(state: QuantState) -> QuantState:
     """Argues the bear case based on data and previous bull arguments."""
     print(f"[Bear Researcher] Preparing bear thesis (Round {state['debate_round']})...")
-    llm = get_deep_llm(temperature=0.3)
+    llm = get_deep_llm(temperature=0.3, keep_alive="5m")
     
     context = f"Market Data: {state['market_data']}\nFundamentals: {state['fundamental_data']}"
     if state['bull_arguments']:
@@ -57,7 +57,8 @@ def bear_researcher(state: QuantState) -> QuantState:
 def trader_decision(state: QuantState) -> QuantState:
     """Weighs the bull and bear arguments and makes a final decision."""
     print(f"[Trader] Evaluating debate for {state['ticker']}...")
-    llm = get_deep_llm(temperature=0.1)
+    # This is the final step in the LLM chain, so explicitly drop the model from VRAM!
+    llm = get_deep_llm(temperature=0.1, keep_alive="0")
     
     prompt = f"""
     You are the Lead Trader. Decide to BUY, SELL, or HOLD {state['ticker']}.
