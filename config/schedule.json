@@ -1,0 +1,29 @@
+{
+  "jobs": [
+    {
+      "time": "05:00",
+      "action": "Run market open analysis for NVDA and execute trades if conditions are met",
+      "user_id": "jay_whatsapp"
+    },
+    {
+      "time": "07:00",
+      "action": "Check for new Senior Full Stack jobs",
+      "user_id": "jay_whatsapp"
+    },
+    {
+      "time": "08:00",
+      "action": "Check for new Senior Full Stack jobs",
+      "user_id": "wife_whatsapp"
+    },
+    {
+      "time": "11:00",
+      "action": "Send daily DMV practice quiz ping: 🚗 Good morning! It's 11:00 AM. Are you ready for your daily DMV 4-Wheeler practice quiz? Reply 'ready' to begin!",
+      "user_id": "wife_whatsapp"
+    },
+    {
+      "time": "13:00",
+      "action": "Run market close analysis and summarize portfolio performance",
+      "user_id": "jay_whatsapp"
+    }
+  ]
+}

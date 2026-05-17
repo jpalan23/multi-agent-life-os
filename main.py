@@ -5,7 +5,7 @@ from teams.quant.trading_graph import build_quant_graph
 from teams.career.career_graph import build_career_graph
 from teams.finance.finance_graph import build_finance_graph
 from teams.dmv_tutor.tutor_graph import build_tutor_graph
-from teams.dmv_tutor.scheduler import start_scheduler
+from core.scheduler import start_scheduler
 
 class SupervisorState(TypedDict):
     messages: Sequence[BaseMessage]
