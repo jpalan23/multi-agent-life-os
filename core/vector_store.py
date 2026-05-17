@@ -21,6 +21,7 @@ class VectorStore:
         
         # We will create collections for different agent memories
         self.trade_findings = self.client.get_or_create_collection(name="trade_findings")
+        self.dmv_questions = self.client.get_or_create_collection(name="dmv_questions")
 
     def add_trade_finding(self, ticker: str, date: str, finding: str, metadata: dict = None):
         """Adds a research finding to the vector store."""
@@ -51,6 +52,30 @@ class VectorStore:
             return [{"document": d, "metadata": m} for d, m in zip(docs, metas)]
             
         return []
+
+    def add_dmv_question(self, question_text: str, question_id: str):
+        """Adds a DMV question to the vector store to track duplicates."""
+        self.dmv_questions.add(
+            documents=[question_text],
+            ids=[str(question_id)]
+        )
+
+    def is_duplicate_question(self, question_text: str, distance_threshold: float = 0.8) -> bool:
+        """
+        Checks if a semantically similar question already exists.
+        A lower distance threshold means stricter matching.
+        """
+        results = self.dmv_questions.query(
+            query_texts=[question_text],
+            n_results=1
+        )
+        
+        if results and results["distances"] and results["distances"][0]:
+            distance = results["distances"][0][0]
+            if distance < distance_threshold:
+                return True
+                
+        return False
 
 # Singleton-like instance
 vector_db = VectorStore()
