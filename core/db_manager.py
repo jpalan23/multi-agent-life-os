@@ -169,6 +169,14 @@ class DBManager:
             proposed_calendar_time DATETIME,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
+
+        -- Trading: Watchlist & Discovery
+        CREATE TABLE IF NOT EXISTS watchlist (
+            ticker TEXT PRIMARY KEY,
+            added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            source TEXT, -- 'USER', 'SCOUT'
+            reason TEXT
+        );
         """
         
         # Ensure the directory exists

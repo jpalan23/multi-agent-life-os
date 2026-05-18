@@ -1,4 +1,4 @@
-from typing import TypedDict, Annotated, Sequence, Optional
+from typing import TypedDict, Annotated, Sequence, Optional, List
 import operator
 from langchain_core.messages import BaseMessage
 
@@ -7,11 +7,15 @@ class QuantState(TypedDict):
     ticker: str
     date: str
     
+    # Discovery
+    scanned_tickers: Optional[List[str]]
+    
     # Analyst outputs
     fundamental_data: Optional[str]
     market_data: Optional[str]
     news_data: Optional[str]
     earnings_insights: Optional[str]
+    alternative_data: Optional[str] # Reddit, Google Search, etc.
     
     # Debate state
     bull_arguments: Optional[str]

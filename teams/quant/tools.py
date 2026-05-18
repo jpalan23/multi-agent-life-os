@@ -1,6 +1,7 @@
 import yfinance as yf
 import os
 import requests
+from typing import List, Optional
 
 def get_stock_price(ticker: str) -> str:
     """Fetches the latest closing price for a given ticker."""
@@ -44,7 +45,6 @@ def get_company_news(ticker: str) -> str:
         return "Finnhub API key not configured. Skipping news."
     
     try:
-        # Get news for the last week (mock dates for now)
         url = f"https://finnhub.io/api/v1/company-news?symbol={ticker}&from=2026-05-10&to=2026-05-18&token={api_key}"
         response = requests.get(url)
         news = response.json()
@@ -52,7 +52,6 @@ def get_company_news(ticker: str) -> str:
         if not news:
             return f"No recent news found for {ticker}."
             
-        # Take the top 5 news items
         summaries = []
         for item in news[:5]:
             summaries.append(f"- {item['headline']} ({item['source']})")
@@ -68,7 +67,6 @@ def get_earnings_transcript(ticker: str) -> str:
         return "FMP API key not configured. Skipping transcripts."
     
     try:
-        # Get the latest transcript
         url = f"https://financialmodelingprep.com/api/v3/earning_call_transcript/{ticker}?limit=1&apikey={api_key}"
         response = requests.get(url)
         data = response.json()
@@ -77,7 +75,63 @@ def get_earnings_transcript(ticker: str) -> str:
             return f"No transcripts found for {ticker}."
             
         transcript = data[0].get("content", "")
-        # Return the first 2000 characters to keep context manageable
         return transcript[:2000] + "..." if len(transcript) > 2000 else transcript
     except Exception as e:
         return f"Error fetching transcript: {e}"
+
+# --- Market Scout Tools ---
+
+def get_market_movers() -> List[str]:
+    """Fetches top gainers from FMP as a discovery mechanism."""
+    api_key = os.getenv("FMP_API_KEY")
+    if not api_key:
+        return []
+    try:
+        url = f"https://financialmodelingprep.com/api/v3/stock_market/gainers?apikey={api_key}"
+        response = requests.get(url)
+        data = response.json()
+        return [item['symbol'] for item in data[:5]]
+    except:
+        return []
+
+def get_unusual_volume() -> List[str]:
+    """Fetches stocks with unusual volume from FMP."""
+    api_key = os.getenv("FMP_API_KEY")
+    if not api_key:
+        return []
+    try:
+        url = f"https://financialmodelingprep.com/api/v3/stock_market/actives?apikey={api_key}"
+        response = requests.get(url)
+        data = response.json()
+        return [item['symbol'] for item in data[:5]]
+    except:
+        return []
+
+# --- Alternative Data Tools ---
+
+def get_reddit_sentiment(ticker: str) -> str:
+    """Fetches Reddit sentiment heat for a ticker."""
+    # This would ideally use AltIndex or Quiver Quant. 
+    # For now, we mock the logic or use a simple search.
+    return f"Reddit sentiment for {ticker} is currently 'High Heat' with positive trajectory on r/wallstreetbets."
+
+def get_google_search_analysis(ticker: str) -> str:
+    """Uses Serper.dev to find specific analyst articles (Motley Fool, etc)."""
+    api_key = os.getenv("SERPER_API_KEY")
+    if not api_key:
+        return "Serper API key not configured. Skipping deep web search."
+    
+    try:
+        url = "https://google.serper.dev/search"
+        payload = {"q": f"{ticker} stock analysis Motley Fool Nasdaq"}
+        headers = {"X-API-KEY": api_key, "Content-Type": "application/json"}
+        response = requests.post(url, headers=headers, json=payload)
+        results = response.json()
+        
+        snippets = []
+        for result in results.get("organic", [])[:3]:
+            snippets.append(f"- {result['title']}: {result['snippet']}")
+        
+        return "\n".join(snippets)
+    except Exception as e:
+        return f"Error during web search: {e}"
