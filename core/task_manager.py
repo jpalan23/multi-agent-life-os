@@ -2,8 +2,12 @@ import asyncio
 import json
 import uuid
 from datetime import datetime
+from contextvars import ContextVar
 from typing import Dict, Any, Optional, Callable
 from core.db_manager import db
+
+# Context variable to track the current task ID across async calls
+current_task_id: ContextVar[Optional[int]] = ContextVar("current_task_id", default=None)
 
 class TaskQueueManager:
     """
@@ -62,6 +66,9 @@ class TaskQueueManager:
                     (datetime.now().isoformat(), task_id)
                 )
                 
+                # Set the current task ID in context
+                token = current_task_id.set(task_id)
+                
                 handler = self.handlers.get(task_type)
                 if handler:
                     try:
@@ -86,6 +93,9 @@ class TaskQueueManager:
                         "UPDATE task_queue SET status = 'FAILED', error_message = 'No handler registered' WHERE id = ?",
                         (task_id,)
                     )
+                
+                # Reset the context
+                current_task_id.reset(token)
                 
                 # Mark task as done in the queue
                 self.queue.task_done()

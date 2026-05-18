@@ -16,6 +16,7 @@ class LLMFactory:
         Returns a ChatOllama instance.
         """
         from langchain_ollama import ChatOllama
+        from core.callbacks import trajectory_callback
         
         base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
         model_name = model or os.getenv("OLLAMA_DEFAULT_MODEL", "llama3")
@@ -27,7 +28,8 @@ class LLMFactory:
             base_url=base_url,
             model=model_name,
             temperature=temperature,
-            keep_alive=keep_alive_val
+            keep_alive=keep_alive_val,
+            callbacks=[trajectory_callback]
         )
 
     @staticmethod
@@ -36,6 +38,7 @@ class LLMFactory:
         Returns a ChatOpenAI instance configured for LM Studio.
         """
         from langchain_openai import ChatOpenAI
+        from core.callbacks import trajectory_callback
         
         base_url = os.getenv("LM_STUDIO_BASE_URL", "http://localhost:1234/v1")
         model_name = model or os.getenv("LM_STUDIO_DEFAULT_MODEL", "local-model")
@@ -44,7 +47,8 @@ class LLMFactory:
             base_url=base_url,
             api_key="lm-studio", # LM Studio requires a placeholder API key
             model=model_name,
-            temperature=temperature
+            temperature=temperature,
+            callbacks=[trajectory_callback]
         )
 
     @classmethod
