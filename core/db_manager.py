@@ -94,6 +94,81 @@ class DBManager:
             times_failed INTEGER DEFAULT 0,
             last_asked DATETIME
         );
+
+        -- Master Orchestration: Milestone Checkpointing
+        CREATE TABLE IF NOT EXISTS data_cache (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            task_id TEXT NOT NULL,
+            node_name TEXT NOT NULL,
+            raw_data_json TEXT NOT NULL,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS task_queue (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            task_type TEXT NOT NULL, -- 'Quant', 'Career', 'Finance', 'Tutor'
+            priority INTEGER DEFAULT 2, -- 0: Immediate, 1: Time-sensitive, 2: Moderate, 3: Background
+            payload_json TEXT NOT NULL,
+            status TEXT DEFAULT 'PENDING', -- PENDING, PROCESSING, COMPLETED, FAILED
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            started_at DATETIME,
+            completed_at DATETIME,
+            error_message TEXT
+        );
+
+        -- Evaluation Harness
+        CREATE TABLE IF NOT EXISTS eval_runs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            run_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            agent_name TEXT NOT NULL,
+            version_number INTEGER,
+            test_case_id TEXT NOT NULL,
+            total_score REAL,
+            raw_trace_json TEXT NOT NULL,
+            judge_rationale TEXT,
+            status TEXT -- SUCCESS, FAILED, REGRESSION
+        );
+
+        CREATE TABLE IF NOT EXISTS golden_dataset (
+            id TEXT PRIMARY KEY,
+            team TEXT NOT NULL,
+            input_query TEXT NOT NULL,
+            expected_milestones TEXT, -- JSON
+            ground_truth_output TEXT
+        );
+
+        -- Trading V5: DNA Versioning
+        CREATE TABLE IF NOT EXISTS agent_dna_versions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            agent_name TEXT NOT NULL,
+            version_number INTEGER NOT NULL,
+            system_prompt TEXT NOT NULL,
+            parameters_json TEXT NOT NULL,
+            proposed_by TEXT,
+            applied_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+            performance_score REAL
+        );
+
+        -- Career V3: Recruiter Sync
+        CREATE TABLE IF NOT EXISTS recruiter_emails (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            profile_id INTEGER NOT NULL,
+            message_id TEXT UNIQUE NOT NULL,
+            sender TEXT NOT NULL,
+            subject TEXT,
+            body TEXT,
+            received_at DATETIME,
+            status TEXT DEFAULT 'PENDING_REVIEW'
+        );
+
+        CREATE TABLE IF NOT EXISTS email_drafts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email_id INTEGER NOT NULL,
+            draft_body TEXT NOT NULL,
+            tailored_resume_path TEXT,
+            proposed_calendar_time DATETIME,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
         """
         
         # Ensure the directory exists
