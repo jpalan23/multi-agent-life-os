@@ -9,6 +9,7 @@ from teams.quant.nodes import (
     market_analyst,
     fundamental_analyst,
     earnings_analyst,
+    alternative_data_analyst,
     bull_researcher,
     bear_researcher,
     trader_decision,
@@ -32,6 +33,7 @@ def build_quant_graph():
     builder.add_node("market_analyst", market_analyst)
     builder.add_node("fundamental_analyst", fundamental_analyst)
     builder.add_node("earnings_analyst", earnings_analyst)
+    builder.add_node("alternative_data_analyst", alternative_data_analyst)
     builder.add_node("bull_researcher", bull_researcher)
     builder.add_node("bear_researcher", bear_researcher)
     builder.add_node("trader_decision", trader_decision)
@@ -42,11 +44,13 @@ def build_quant_graph():
     builder.add_edge(START, "market_analyst")
     builder.add_edge(START, "fundamental_analyst")
     builder.add_edge(START, "earnings_analyst")
+    builder.add_edge(START, "alternative_data_analyst")
     
     # Start debate after all analysis is done
     builder.add_edge("market_analyst", "bull_researcher")
     builder.add_edge("fundamental_analyst", "bull_researcher")
     builder.add_edge("earnings_analyst", "bull_researcher")
+    builder.add_edge("alternative_data_analyst", "bull_researcher")
     
     # Debate loop
     builder.add_edge("bull_researcher", "bear_researcher")

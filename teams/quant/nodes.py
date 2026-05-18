@@ -3,7 +3,16 @@ from core.llm_factory import get_quick_llm, get_deep_llm
 from core.db_manager import db
 from core.vector_store import vector_db
 from core.price_oracle import price_oracle
-from teams.quant.tools import get_stock_price, get_stock_info, get_company_news, get_earnings_transcript
+from teams.quant.tools import (
+    get_stock_price, 
+    get_stock_info, 
+    get_company_news, 
+    get_earnings_transcript,
+    get_market_movers,
+    get_unusual_volume,
+    get_reddit_sentiment,
+    get_google_search_analysis
+)
 from teams.quant.state import QuantState
 from teams.quant.archetypes import ARCHETYPES
 
@@ -54,6 +63,41 @@ def earnings_analyst(state: QuantState) -> QuantState:
     response = llm.invoke([HumanMessage(content=prompt)])
     return {"earnings_insights": response.content}
 
+def alternative_data_analyst(state: QuantState) -> QuantState:
+    """Synthesizes data from Reddit sentiment and Google searches."""
+    print(f"[Alt-Data Analyst] Analyzing Reddit & Web Research for {state['ticker']}...")
+    
+    reddit = get_reddit_sentiment(state['ticker'])
+    google = get_google_search_analysis(state['ticker'])
+    
+    # Use Quick LLM to synthesize
+    llm = get_quick_llm(temperature=0.1, keep_alive="5m")
+    prompt = f"""
+    Synthesize the following alternative data for {state['ticker']} into a brief sentiment report.
+    Reddit Context: {reddit}
+    Web Research (Motley Fool/Nasdaq/etc): {google}
+    """
+    response = llm.invoke([HumanMessage(content=prompt)])
+    return {"alternative_data": response.content}
+
+def market_scout(state: QuantState) -> QuantState:
+    """Discovers high-signal tickers autonomously."""
+    print("[Market Scout] Scanning for top movers and unusual volume...")
+    
+    movers = get_market_movers()
+    volume = get_unusual_volume()
+    
+    all_discovered = list(set(movers + volume))
+    
+    for ticker in all_discovered:
+        db.execute_query(
+            "INSERT OR IGNORE INTO watchlist (ticker, source, reason) VALUES (?, ?, ?)",
+            (ticker, 'SCOUT', 'Top Mover / Unusual Volume detected by Scout')
+        )
+        print(f"[Market Scout] Discovered: {ticker}")
+        
+    return {"scanned_tickers": all_discovered}
+
 def bull_researcher(state: QuantState) -> QuantState:
     """Argues the bull case based on data and previous bear arguments."""
     print(f"[Bull Researcher] Preparing bull thesis (Round {state['debate_round']})...")
@@ -63,7 +107,8 @@ def bull_researcher(state: QuantState) -> QuantState:
         f"Market Data: {state['market_data']}\n"
         f"Fundamentals: {state['fundamental_data']}\n"
         f"Recent News: {state['news_data']}\n"
-        f"Earnings Insights: {state['earnings_insights']}"
+        f"Earnings Insights: {state['earnings_insights']}\n"
+        f"Alternative Data (Reddit/Web): {state['alternative_data']}"
     )
     
     if state['bear_arguments']:
@@ -83,7 +128,8 @@ def bear_researcher(state: QuantState) -> QuantState:
         f"Market Data: {state['market_data']}\n"
         f"Fundamentals: {state['fundamental_data']}\n"
         f"Recent News: {state['news_data']}\n"
-        f"Earnings Insights: {state['earnings_insights']}"
+        f"Earnings Insights: {state['earnings_insights']}\n"
+        f"Alternative Data (Reddit/Web): {state['alternative_data']}"
     )
     
     if state['bull_arguments']:

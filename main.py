@@ -9,6 +9,7 @@ from teams.finance.finance_graph import build_finance_graph
 from teams.dmv_tutor.tutor_graph import build_tutor_graph
 from core.scheduler import start_scheduler
 from core.task_manager import task_manager
+from core.db_manager import db
 
 async def supervisor_router(query: str) -> str:
     """Uses LLM to determine the appropriate team for the query."""
@@ -33,13 +34,36 @@ async def supervisor_router(query: str) -> str:
 
 # --- Task Handlers ---
 
+async def handle_discovery_task(payload: Dict[str, Any]):
+    print("[Discovery] Starting Market Scout scan...")
+    graph = build_quant_graph()
+    # Market Scout doesn't need a ticker, it finds them
+    state = {"ticker": "SCANNER", "debate_round": 1, "max_debate_rounds": 2}
+    
+    # Run the scout node specifically
+    from teams.quant.nodes import market_scout
+    result = market_scout(state)
+    tickers = result.get("scanned_tickers", [])
+    
+    if tickers:
+        print(f"[Discovery] Scout found {len(tickers)} tickers. Adding to queue...")
+        for ticker in tickers:
+            await task_manager.add_task("Quant", {"query": f"Analyze discovered stock: {ticker}", "ticker": ticker}, priority=1)
+
 async def handle_quant_task(payload: Dict[str, Any]):
     query = payload.get("query")
-    thread_id = payload.get("thread_id", "default_session")
-    print(f"[Quant] Processing: {query}")
+    ticker = payload.get("ticker", "NVDA")
+    thread_id = payload.get("thread_id", f"quant_{ticker}")
+    print(f"[Quant] Processing: {query} for ticker: {ticker}")
     
     graph = build_quant_graph()
-    state = {"messages": [HumanMessage(content=query)], "ticker": payload.get("ticker", "NVDA"), "date": "2026-05-16"}
+    state = {
+        "messages": [HumanMessage(content=query)], 
+        "ticker": ticker, 
+        "date": "2026-05-18",
+        "debate_round": 1,
+        "max_debate_rounds": 2
+    }
     config = {"configurable": {"thread_id": thread_id}}
     
     async for s in graph.astream(state, config=config):
@@ -50,7 +74,7 @@ async def handle_quant_task(payload: Dict[str, Any]):
     if values.get('execution_details'):
         print(f"[Quant] Decision: {values.get('final_decision')}\n{values.get('execution_details')}")
     else:
-        print("[Quant] Analysis completed.")
+        print(f"[Quant] Analysis for {ticker} completed.")
 
 async def handle_career_task(payload: Dict[str, Any]):
     print("[Career] Processing: Mocked in V1.")
@@ -79,6 +103,11 @@ async def handle_tutor_task(payload: Dict[str, Any]):
 async def run_system(query: str, thread_id: str = "default_session"):
     """Determines the route and adds a task to the queue."""
     print(f"[Supervisor] Received Query: {query}")
+    
+    if query.lower() == "run discovery":
+        await task_manager.add_task("Discovery", {}, priority=1)
+        return
+
     route = await supervisor_router(query)
     print(f"[Supervisor] Routing to: {route} Team")
     
@@ -89,12 +118,23 @@ async def run_system(query: str, thread_id: str = "default_session"):
         priority = 1 # Time-sensitive
         
     if route in ["Quant", "Career", "Finance", "Tutor"]:
-        await task_manager.add_task(route, {"query": query, "thread_id": thread_id}, priority=priority)
+        # Extract ticker if possible for Quant
+        ticker = "NVDA"
+        if route == "Quant":
+            # Simple heuristic
+            words = query.split()
+            for word in words:
+                if word.isupper() and 1 <= len(word) <= 5:
+                    ticker = word
+                    break
+        
+        await task_manager.add_task(route, {"query": query, "thread_id": thread_id, "ticker": ticker}, priority=priority)
     else:
         print(f"[Supervisor] Unknown route for query: {query}")
 
 async def main():
     # Register handlers
+    task_manager.register_handler("Discovery", handle_discovery_task)
     task_manager.register_handler("Quant", handle_quant_task)
     task_manager.register_handler("Career", handle_career_task)
     task_manager.register_handler("Finance", handle_finance_task)
@@ -117,12 +157,10 @@ async def main():
         # Keep the script running if there are pending tasks
         while not task_manager.queue.empty() or task_manager.is_running:
             await asyncio.sleep(1)
-            # Add a break condition or just let the user Ctrl+C
-            if task_manager.queue.empty():
-                # Check if currently processing
-                processing = db.execute_query("SELECT COUNT(*) as count FROM task_queue WHERE status = 'PROCESSING'")[0]['count']
-                if processing == 0:
-                    break
+            # Check if processing
+            processing_count = db.execute_query("SELECT COUNT(*) as count FROM task_queue WHERE status = 'PROCESSING'")[0]['count']
+            if task_manager.queue.empty() and processing_count == 0:
+                break
     except Exception as e:
         print(f"System execution error: {e}")
 
