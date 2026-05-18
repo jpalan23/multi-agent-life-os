@@ -3,19 +3,25 @@ from core.llm_factory import get_quick_llm, get_deep_llm
 from core.db_manager import db
 from core.vector_store import vector_db
 from core.price_oracle import price_oracle
-from teams.quant.tools import get_stock_price, get_stock_info
+from teams.quant.tools import get_stock_price, get_stock_info, get_company_news, get_earnings_transcript
 from teams.quant.state import QuantState
 from teams.quant.archetypes import ARCHETYPES
 
 def market_analyst(state: QuantState) -> QuantState:
-    """Fetches real-time market data (prices, volume)."""
-    print(f"[Market Analyst] Fetching market data for {state['ticker']}...")
+    """Fetches real-time market data (prices, volume) and news."""
+    print(f"[Market Analyst] Fetching market data & news for {state['ticker']}...")
+    
+    # Fetch Price
     price = price_oracle.get_last_price(state['ticker'])
     if price:
         price_info = f"The latest price for {state['ticker']} is ${price:.2f}."
     else:
-        price_info = get_stock_price(state['ticker']) # fallback to tool
-    return {"market_data": price_info}
+        price_info = get_stock_price(state['ticker'])
+        
+    # Fetch News
+    news = get_company_news(state['ticker'])
+    
+    return {"market_data": price_info, "news_data": news}
 
 def fundamental_analyst(state: QuantState) -> QuantState:
     """Fetches real fundamental data via yfinance."""
@@ -29,12 +35,37 @@ def fundamental_analyst(state: QuantState) -> QuantState:
     
     return {"fundamental_data": response.content}
 
+def earnings_analyst(state: QuantState) -> QuantState:
+    """Fetches and analyzes the latest earnings transcript."""
+    print(f"[Earnings Analyst] Analyzing latest transcript for {state['ticker']}...")
+    transcript = get_earnings_transcript(state['ticker'])
+    
+    if "Skipping" in transcript or "No transcripts found" in transcript:
+        return {"earnings_insights": transcript}
+        
+    # Use Quick LLM to extract key insights
+    llm = get_quick_llm(temperature=0.1, keep_alive="5m")
+    prompt = f"""
+    Analyze the following earnings transcript snippet for {state['ticker']}. 
+    Extract the key strategic direction, revenue guidance, and any major risks mentioned.
+    
+    Transcript: {transcript}
+    """
+    response = llm.invoke([HumanMessage(content=prompt)])
+    return {"earnings_insights": response.content}
+
 def bull_researcher(state: QuantState) -> QuantState:
     """Argues the bull case based on data and previous bear arguments."""
     print(f"[Bull Researcher] Preparing bull thesis (Round {state['debate_round']})...")
     llm = get_deep_llm(temperature=0.3, keep_alive="5m")
     
-    context = f"Market Data: {state['market_data']}\nFundamentals: {state['fundamental_data']}"
+    context = (
+        f"Market Data: {state['market_data']}\n"
+        f"Fundamentals: {state['fundamental_data']}\n"
+        f"Recent News: {state['news_data']}\n"
+        f"Earnings Insights: {state['earnings_insights']}"
+    )
+    
     if state['bear_arguments']:
         context += f"\nCounter the Bear's arguments: {state['bear_arguments']}"
         
@@ -48,7 +79,13 @@ def bear_researcher(state: QuantState) -> QuantState:
     print(f"[Bear Researcher] Preparing bear thesis (Round {state['debate_round']})...")
     llm = get_deep_llm(temperature=0.3, keep_alive="5m")
     
-    context = f"Market Data: {state['market_data']}\nFundamentals: {state['fundamental_data']}"
+    context = (
+        f"Market Data: {state['market_data']}\n"
+        f"Fundamentals: {state['fundamental_data']}\n"
+        f"Recent News: {state['news_data']}\n"
+        f"Earnings Insights: {state['earnings_insights']}"
+    )
+    
     if state['bull_arguments']:
         context += f"\nCounter the Bull's arguments: {state['bull_arguments']}"
         

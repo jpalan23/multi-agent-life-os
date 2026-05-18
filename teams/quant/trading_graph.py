@@ -8,6 +8,7 @@ from teams.quant.state import QuantState
 from teams.quant.nodes import (
     market_analyst,
     fundamental_analyst,
+    earnings_analyst,
     bull_researcher,
     bear_researcher,
     trader_decision,
@@ -30,6 +31,7 @@ def build_quant_graph():
     # Add nodes
     builder.add_node("market_analyst", market_analyst)
     builder.add_node("fundamental_analyst", fundamental_analyst)
+    builder.add_node("earnings_analyst", earnings_analyst)
     builder.add_node("bull_researcher", bull_researcher)
     builder.add_node("bear_researcher", bear_researcher)
     builder.add_node("trader_decision", trader_decision)
@@ -39,10 +41,12 @@ def build_quant_graph():
     # Define edges
     builder.add_edge(START, "market_analyst")
     builder.add_edge(START, "fundamental_analyst")
+    builder.add_edge(START, "earnings_analyst")
     
-    # Start debate after analysis
+    # Start debate after all analysis is done
     builder.add_edge("market_analyst", "bull_researcher")
     builder.add_edge("fundamental_analyst", "bull_researcher")
+    builder.add_edge("earnings_analyst", "bull_researcher")
     
     # Debate loop
     builder.add_edge("bull_researcher", "bear_researcher")
@@ -60,33 +64,3 @@ def build_quant_graph():
     memory = SqliteSaver(conn)
     
     return builder.compile(checkpointer=memory)
-
-# For easy testing
-if __name__ == "__main__":
-    from datetime import datetime
-    import sys
-    
-    graph = build_quant_graph()
-    
-    ticker = sys.argv[1] if len(sys.argv) > 1 else "AAPL"
-    
-    initial_state = {
-        "messages": [], 
-        "ticker": ticker, 
-        "date": datetime.now().strftime("%Y-%m-%d"),
-        "fundamental_data": None, 
-        "market_data": None, 
-        "bull_arguments": None,
-        "bear_arguments": None,
-        "debate_round": 1,
-        "max_debate_rounds": 2,
-        "risk_assessment": None,
-        "risk_approved": False,
-        "final_decision": None,
-        "execution_details": None
-    }
-    
-    config = {"configurable": {"thread_id": f"test_run_{ticker}_{initial_state['date']}"}}
-    
-    for s in graph.stream(initial_state, config=config):
-        print("--- Node completed ---")

@@ -1,4 +1,6 @@
 import yfinance as yf
+import os
+import requests
 
 def get_stock_price(ticker: str) -> str:
     """Fetches the latest closing price for a given ticker."""
@@ -34,3 +36,48 @@ def get_stock_info(ticker: str) -> str:
         return summary
     except Exception as e:
         return f"Error fetching info for {ticker}: {e}"
+
+def get_company_news(ticker: str) -> str:
+    """Fetches the latest news for a ticker via Finnhub."""
+    api_key = os.getenv("FINNHUB_API_KEY")
+    if not api_key:
+        return "Finnhub API key not configured. Skipping news."
+    
+    try:
+        # Get news for the last week (mock dates for now)
+        url = f"https://finnhub.io/api/v1/company-news?symbol={ticker}&from=2026-05-10&to=2026-05-18&token={api_key}"
+        response = requests.get(url)
+        news = response.json()
+        
+        if not news:
+            return f"No recent news found for {ticker}."
+            
+        # Take the top 5 news items
+        summaries = []
+        for item in news[:5]:
+            summaries.append(f"- {item['headline']} ({item['source']})")
+        
+        return "\n".join(summaries)
+    except Exception as e:
+        return f"Error fetching news: {e}"
+
+def get_earnings_transcript(ticker: str) -> str:
+    """Fetches the latest earnings transcript via Financial Modeling Prep (FMP)."""
+    api_key = os.getenv("FMP_API_KEY")
+    if not api_key:
+        return "FMP API key not configured. Skipping transcripts."
+    
+    try:
+        # Get the latest transcript
+        url = f"https://financialmodelingprep.com/api/v3/earning_call_transcript/{ticker}?limit=1&apikey={api_key}"
+        response = requests.get(url)
+        data = response.json()
+        
+        if not data:
+            return f"No transcripts found for {ticker}."
+            
+        transcript = data[0].get("content", "")
+        # Return the first 2000 characters to keep context manageable
+        return transcript[:2000] + "..." if len(transcript) > 2000 else transcript
+    except Exception as e:
+        return f"Error fetching transcript: {e}"

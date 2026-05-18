@@ -10,6 +10,8 @@ class QuantState(TypedDict):
     # Analyst outputs
     fundamental_data: Optional[str]
     market_data: Optional[str]
+    news_data: Optional[str]
+    earnings_insights: Optional[str]
     
     # Debate state
     bull_arguments: Optional[str]
