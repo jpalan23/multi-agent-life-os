@@ -19,9 +19,11 @@ It features an always-on WhatsApp interface, allowing you to trigger agents, que
 
 ## 2. The Teams (Agents)
 
-### ⚙️ Master Orchestration: P0 Reliability - *[V3 Active]*
+### ⚖️ Master Orchestration: P0 Reliability - *[V3 Active]*
 - **Sequential Task Queue:** Enforces Zero-Concurrency to protect local hardware (Ollama) from over-saturation.
+- **Evaluation Harness (The Referee):** Built-in "Judge Agent" that systematically audits reasoning trajectories for accuracy and tool precision.
 - **Model Tiering:** Strategically routes tasks between fast (1B-3B) and deep (8B-70B) models.
+
 - **Milestone Checkpointing:** Persists task state to SQLite, allowing for seamless recovery after system crashes.
 - **Trajectory Auditing:** Logs every reasoning step and tool call to a JSON-based audit trail for future evaluation.
 

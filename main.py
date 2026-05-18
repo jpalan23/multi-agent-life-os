@@ -10,6 +10,7 @@ from teams.dmv_tutor.tutor_graph import build_tutor_graph
 from core.scheduler import start_scheduler
 from core.task_manager import task_manager
 from core.db_manager import db
+from core.eval_harness import eval_harness
 
 async def supervisor_router(query: str) -> str:
     """Uses LLM to determine the appropriate team for the query."""
@@ -33,6 +34,14 @@ async def supervisor_router(query: str) -> str:
     return route
 
 # --- Task Handlers ---
+
+async def handle_eval_task(payload: Dict[str, Any]):
+    """Runs the evaluation harness on pending or specific traces."""
+    trace_id = payload.get("trace_id")
+    if trace_id:
+        await eval_harness.run_eval(trace_id)
+    else:
+        await eval_harness.run_batch_eval(team=payload.get("team"))
 
 async def handle_discovery_task(payload: Dict[str, Any]):
     print("[Discovery] Starting Market Scout scan...")
@@ -108,6 +117,10 @@ async def run_system(query: str, thread_id: str = "default_session"):
         await task_manager.add_task("Discovery", {}, priority=1)
         return
 
+    if query.lower() == "run eval":
+        await task_manager.add_task("Evaluation", {}, priority=3)
+        return
+
     route = await supervisor_router(query)
     print(f"[Supervisor] Routing to: {route} Team")
     
@@ -135,6 +148,7 @@ async def run_system(query: str, thread_id: str = "default_session"):
 async def main():
     # Register handlers
     task_manager.register_handler("Discovery", handle_discovery_task)
+    task_manager.register_handler("Evaluation", handle_eval_task)
     task_manager.register_handler("Quant", handle_quant_task)
     task_manager.register_handler("Career", handle_career_task)
     task_manager.register_handler("Finance", handle_finance_task)
