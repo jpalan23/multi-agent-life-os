@@ -2,13 +2,18 @@ from langchain_core.messages import HumanMessage, AIMessage
 from core.llm_factory import get_quick_llm, get_deep_llm
 from core.db_manager import db
 from core.vector_store import vector_db
+from core.price_oracle import price_oracle
 from teams.quant.tools import get_stock_price, get_stock_info
 from teams.quant.state import QuantState
 
 def market_analyst(state: QuantState) -> QuantState:
     """Fetches real-time market data (prices, volume)."""
     print(f"[Market Analyst] Fetching market data for {state['ticker']}...")
-    price_info = get_stock_price(state['ticker'])
+    price = price_oracle.get_last_price(state['ticker'])
+    if price:
+        price_info = f"The latest price for {state['ticker']} is ${price:.2f}."
+    else:
+        price_info = get_stock_price(state['ticker']) # fallback to tool
     return {"market_data": price_info}
 
 def fundamental_analyst(state: QuantState) -> QuantState:
@@ -122,14 +127,16 @@ def execution_agent(state: QuantState) -> QuantState:
     print(f"[Execution Agent] Finalizing execution for {state['ticker']}: {state['final_decision']}")
     
     if state['final_decision'] in ["BUY", "SELL"]:
-        # Naive dummy execution: 10 units at current price approximation
-        # Ideally, we fetch real price here or pass it from market_data
-        try:
-            price_str = state['market_data']
-            # extract float from "$123.45"
-            price = float(price_str.split('$')[-1].split('.')[0] + '.' + price_str.split('$')[-1].split('.')[1][:2])
-        except:
-            price = 100.0 # fallback dummy price
+        # Fetch real-time price from Oracle at execution time
+        price = price_oracle.get_last_price(state['ticker'])
+        if not price:
+            # Fallback to parsing market_data if oracle fails
+            try:
+                price_str = state['market_data']
+                # extract float from "$123.45"
+                price = float(price_str.split('$')[-1])
+            except:
+                price = 100.0 # fallback dummy price
             
         qty = 10.0
         
