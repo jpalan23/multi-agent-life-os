@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Agent Life-OS | Architecture Vision</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --primary: #38bdf8;
+            --accent: #818cf8;
+            --success: #4ade80;
+            --warning: #fbbf24;
+            --text: #f1f5f9;
+            --muted: #94a3b8;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: 1.1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .phase-card {
+            background: var(--card-bg);
+            border-radius: 1rem;
+            padding: 2rem;
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .phase-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+        }
+
+        .current::before { background: var(--warning); }
+        .target::before { background: var(--success); }
+
+        h2 {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-top: 0;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 1rem;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .badge-current { background: rgba(251, 191, 36, 0.2); color: var(--warning); }
+        .badge-target { background: rgba(74, 222, 128, 0.2); color: var(--success); }
+
+        .team-grid {
+            display: grid;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .team-item {
+            padding: 1rem;
+            background: rgba(255,255,255,0.03);
+            border-radius: 0.5rem;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .team-name {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        ul {
+            margin: 0;
+            padding-left: 1.25rem;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        li {
+            margin-bottom: 0.4rem;
+        }
+
+        .status-dot {
+            height: 8px;
+            width: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        .status-active { background: var(--success); box-shadow: 0 0 8px var(--success); }
+        .status-mock { background: var(--warning); }
+
+        .tech-stack {
+            margin-top: 3rem;
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 2rem;
+            background: rgba(56, 189, 248, 0.05);
+            border-radius: 1rem;
+        }
+
+        .diagram-section {
+            grid-column: 1 / -1;
+            margin-top: 3rem;
+        }
+
+        .diagram-container {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 2rem;
+        }
+
+        h3 {
+            margin-top: 0;
+            color: var(--primary);
+            font-size: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .mermaid {
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            color: #1e293b;
+        }
+
+        .tech-icons {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .tech-tag {
+            background: rgba(255,255,255,0.05);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.85rem;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        @media (max-width: 900px) {
+            .container { grid-template-columns: 1fr; }
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .live-indicator {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Multi-Agent Life-OS</h1>
+        <p class="subtitle">Zero-Cloud Autonomous Intelligence Framework</p>
+    </header>
+
+    <div class="container">
+        <!-- CURRENT ARCHITECTURE -->
+        <section class="phase-card current">
+            <h2>
+                Current State 
+                <span class="badge badge-current">V3/V4 Active</span>
+            </h2>
+            <p style="color: var(--muted)">Infrastructure established with core P0 Orchestration active.</p>
+
+            <div class="team-grid">
+                <div class="team-item">
+                    <span class="team-name"><span class="status-dot status-active live-indicator"></span> Team A: The Quant (V4)</span>
+                    <ul>
+                        <li><b>Real-time:</b> Alpaca/yfinance Price Oracle</li>
+                        <li><b>Archetypes:</b> Oak, Hummingbird, Maverick, Oracle</li>
+                        <li><b>Memory:</b> Trajectory-based audit logging</li>
+                    </ul>
+                </div>
+                <div class="team-item">
+                    <span class="team-name"><span class="status-dot status-active live-indicator"></span> Master Orchestration (V3)</span>
+                    <ul>
+                        <li><b>Sequential Lock:</b> Strict P0 Zero-Concurrency</li>
+                        <li><b>Queue:</b> Persistent priority-based Task Manager</li>
+                        <li><b>Persistence:</b> Milestone checkpointing (SQLite)</li>
+                    </ul>
+                </div>
+                <div class="team-item">
+                    <span class="team-name"><span class="status-dot status-active"></span> Team E: DMV Tutor</span>
+                    <ul>
+                        <li>LLaVA Vision parsing of handbooks</li>
+                        <li>Stateful SQLite question tracking</li>
+                        <li>Active WhatsApp daily scheduler</li>
+                    </ul>
+                </div>
+                <div class="team-item">
+                    <span class="team-name"><span class="status-dot status-mock"></span> Team B: Career Catalyst</span>
+                    <ul>
+                        <li>Basic profile structure (Software Engineer)</li>
+                        <li>Drafting: Recruiter sync (Gmail API)</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- TARGET ARCHITECTURE -->
+        <section class="phase-card target">
+            <h2>
+                Vision (V5) 
+                <span class="badge badge-target">Goal Architecture</span>
+            </h2>
+            <p style="color: var(--muted)">Fully autonomous, self-learning ecosystem with cloud-sync.</p>
+
+            <div class="team-grid">
+                <div class="team-item">
+                    <span class="team-name">📈 Evolutionary Trading (V5)</span>
+                    <ul>
+                        <li><b>Strawberry Games:</b> 5 competitive agent archetypes</li>
+                        <li><b>DNA Evolution:</b> Meta-agent rewrites logic based on ROI</li>
+                        <li><b>Data Oracle:</b> Live Alpaca/yfinance price execution</li>
+                    </ul>
+                </div>
+                <div class="team-item">
+                    <span class="team-name">💼 Career Sync (V3)</span>
+                    <ul>
+                        <li><b>Playwright Stealth:</b> Resilient multi-platform scraping</li>
+                        <li><b>Cloud Sync:</b> Dual-profile Gmail & Calendar integration</li>
+                        <li><b>Auto-Apply:</b> Batched 9AM approval workflow</li>
+                    </ul>
+                </div>
+                <div class="team-item">
+                    <span class="team-name">⚙️ P0 Orchestration</span>
+                    <ul>
+                        <li><b>Task Queue:</b> Priority-based sequential processing</li>
+                        <li><b>Fail-Safe:</b> Milestone checkpointing & Auto-recovery</li>
+                        <li><b>Model Tiering:</b> Dynamic fast vs. deep LLM routing</li>
+                    </ul>
+                </div>
+                <div class="team-item">
+                    <span class="team-name">🤖 Global Intelligence</span>
+                    <ul>
+                        <li><b>Cross-Team Synergy:</b> Career signals inform Trade risk</li>
+                        <li><b>Unified Memory:</b> Shared Vector DB across all life pillars</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- DIAGRAMS -->
+        <div class="diagram-section">
+            <div class="diagram-container">
+                <h3>Master Orchestration (P0 Sequential Lock)</h3>
+                <div class="mermaid">
+                    graph TD
+                    A[External Trigger / Scheduler] --> B{Task Queue Manager}
+                    B -->|P0: High Priority| C[Sequential Lock]
+                    B -->|P1: Scheduled| C
+                    B -->|P2: Background| C
+                    C --> D{Is Model Free?}
+                    D -->|No| E[Wait in Queue]
+                    E --> D
+                    D -->|Yes| F[Execute Team Graph]
+                    F --> G[LangGraph Checkpoint]
+                    G --> H[Release Lock]
+                    H --> B
+                </div>
+            </div>
+
+            <div class="diagram-container">
+                <h3>Career Team V3 (Cloud Sync & HITL)</h3>
+                <div class="mermaid">
+                    graph LR
+                    A[Gmail/Job Boards] --> B[Fetcher Node]
+                    B --> C[SQLite: DISCOVERED]
+                    C --> D[LLM Classifier]
+                    D --> E[Resume Tailor / Email Drafter]
+                    E --> F[SQLite: DRAFTED]
+                    F --> G[9:00 AM Daily Digest]
+                    G --> H{Human Approval}
+                    H -->|Rejected| I[Delete/Update]
+                    H -->|Approved| J[Google API: Send Email]
+                    J --> K[Google Calendar: Hold]
+                    K --> L[SQLite: APPLIED]
+                </div>
+            </div>
+
+            <div class="diagram-container">
+                <h3>Trading Team V5 (Evolutionary Loop)</h3>
+                <div class="mermaid">
+                    graph TD
+                    A[Market Data Oracle] --> B[Simulation Arena]
+                    B --> C[Agent Archetypes: Oak/Maverick/etc]
+                    C --> D[Strawberry Games ROI]
+                    D --> E[Vector DB: Reasoning Logs]
+                    E --> F[Weekly Optimizer Meta-Agent]
+                    F --> G[Simulation Sandbox Backtest]
+                    G --> H{Human-in-the-Loop}
+                    H -->|Approve| I[Update Agent DNA/Prompts]
+                    I --> B
+                </div>
+            </div>
+        </div>
+
+        <section class="tech-stack">
+            <h3>The Stack</h3>
+            <div class="tech-icons">
+                <span class="tech-tag">LangGraph</span>
+                <span class="tech-tag">Ollama (Local LLMs)</span>
+                <span class="tech-tag">SQLite (Short-term)</span>
+                <span class="tech-tag">ChromaDB (Semantic)</span>
+                <span class="tech-tag">Playwright</span>
+                <span class="tech-tag">FastAPI</span>
+                <span class="tech-tag">Python 3.10+</span>
+            </div>
+        </section>
+    </div>
+
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ 
+            startOnLoad: true, 
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#38bdf8',
+                primaryTextColor: '#1e293b',
+                primaryBorderColor: '#0ea5e9',
+                lineColor: '#64748b',
+                secondaryColor: '#f1f5f9',
+                tertiaryColor: '#f8fafc'
+            }
+        });
+    </script>
+</body>
+</html>

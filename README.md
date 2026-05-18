@@ -19,8 +19,20 @@ It features an always-on WhatsApp interface, allowing you to trigger agents, que
 
 ## 2. The Teams (Agents)
 
-### 📈 Team A: The Quant (Trading & Stocks) - *[V2 Active]*
-- **Adversarial Debate:** Employs Bull vs. Bear researchers to debate stock prospects based on real `yfinance` data.
+### ⚙️ Master Orchestration: P0 Reliability - *[V3 Active]*
+- **Sequential Task Queue:** Enforces Zero-Concurrency to protect local hardware (Ollama) from over-saturation.
+- **Model Tiering:** Strategically routes tasks between fast (1B-3B) and deep (8B-70B) models.
+- **Milestone Checkpointing:** Persists task state to SQLite, allowing for seamless recovery after system crashes.
+- **Trajectory Auditing:** Logs every reasoning step and tool call to a JSON-based audit trail for future evaluation.
+
+### 📈 Team A: The Quant (Trading & Stocks) - *[V4 Active]*
+- **Agent Archetypes (V4):** Supports 4 distinct trading philosophies:
+    - **The Oak:** Long-term value investor.
+    - **The Hummingbird:** High-frequency momentum scalper.
+    - **The Maverick:** Aggressive contrarian.
+    - **The Oracle:** Hard-data fundamentalist.
+- **Price Oracle:** Real-time trade execution using **Alpaca API** with **yfinance** fallback.
+- **Adversarial Debate:** Employs Bull vs. Bear researchers to debate stock prospects.
 - **Risk Management:** Paper trading engine with a simulated $100k dummy portfolio.
 - **Vector Memory:** Saves trade rationale to ChromaDB to inform future decisions.
 

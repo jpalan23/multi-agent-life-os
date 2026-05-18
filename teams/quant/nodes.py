@@ -1,10 +1,11 @@
-from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from core.llm_factory import get_quick_llm, get_deep_llm
 from core.db_manager import db
 from core.vector_store import vector_db
 from core.price_oracle import price_oracle
 from teams.quant.tools import get_stock_price, get_stock_info
 from teams.quant.state import QuantState
+from teams.quant.archetypes import ARCHETYPES
 
 def market_analyst(state: QuantState) -> QuantState:
     """Fetches real-time market data (prices, volume)."""
@@ -61,19 +62,26 @@ def bear_researcher(state: QuantState) -> QuantState:
 
 def trader_decision(state: QuantState) -> QuantState:
     """Weighs the bull and bear arguments and makes a final decision."""
-    print(f"[Trader] Evaluating debate for {state['ticker']}...")
+    archetype_name = state.get("archetype", "Standard")
+    print(f"[Trader] {archetype_name} evaluating debate for {state['ticker']}...")
+    
     # This is the final step in the LLM chain, so explicitly drop the model from VRAM!
     llm = get_deep_llm(temperature=0.1, keep_alive="0")
     
+    archetype_prompt = ""
+    if archetype_name in ARCHETYPES:
+        archetype_prompt = f"\nYOUR PERSONA: {ARCHETYPES[archetype_name]['system_prompt']}"
+    
     prompt = f"""
-    You are the Lead Trader. Decide to BUY, SELL, or HOLD {state['ticker']}.
+    You are the Lead Trader.{archetype_prompt}
+    Decide to BUY, SELL, or HOLD {state['ticker']}.
     Bull Case: {state['bull_arguments']}
     Bear Case: {state['bear_arguments']}
     
     Respond with ONLY the action (BUY, SELL, HOLD) on the first line. 
-    Then provide a brief justification.
+    Then provide a brief justification based on your specific persona and philosophy.
     """
-    response = llm.invoke([HumanMessage(content=prompt)])
+    response = llm.invoke([HumanMessage(content=prompt)], config={"tags": [f"Trader: {archetype_name}"]})
     content = response.content.strip().split('\n')
     action = content[0].strip().replace(".", "").upper()
     justification = "\n".join(content[1:]).strip()

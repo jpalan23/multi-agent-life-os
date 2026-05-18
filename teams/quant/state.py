@@ -17,6 +17,9 @@ class QuantState(TypedDict):
     debate_round: int
     max_debate_rounds: int
     
+    # Simulation context
+    archetype: Optional[str] # "The Oak", "The Maverick", etc.
+    
     # Decisions
     risk_assessment: Optional[str]
     risk_approved: bool
