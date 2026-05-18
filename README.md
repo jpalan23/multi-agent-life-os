@@ -26,10 +26,9 @@ It features an always-on WhatsApp interface, allowing you to trigger agents, que
 - **Trajectory Auditing:** Logs every reasoning step and tool call to a JSON-based audit trail for future evaluation.
 
 ### 📈 Team A: The Quant (Trading & Stocks) - *[V4 Active]*
-- **Adversarial Debate:** Employs Bull vs. Bear researchers to debate stock prospects.
-- **Earnings Analysis:** Dedicated node to parse and extract strategic insights from earnings transcripts.
-- **News Sentiment:** Real-time news ingestion and sentiment analysis via Finnhub.
-- **Agent Archetypes (V4):** Supports 4 distinct trading philosophies (Oak, Hummingbird, Maverick, Oracle).
+- **Autonomous Discovery:** Integrated **Market Scout** node that scans pre-market movers and unusual volume to suggest stocks for analysis.
+- **Alternative Data:** Ingests non-traditional signals from **Reddit sentiment** and **Google Analyst Search** (Motley Fool, Nasdaq, 24/7 Wall St).
+- **Adversarial Debate:** Employs Bull vs. Bear researchers to debate stock prospects using deep context.
 - **Risk Management:** Paper trading engine with a simulated $100k dummy portfolio.
 - **Vector Memory:** Saves trade rationale to ChromaDB to inform future decisions.
 
