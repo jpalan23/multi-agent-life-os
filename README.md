@@ -26,13 +26,10 @@ It features an always-on WhatsApp interface, allowing you to trigger agents, que
 - **Trajectory Auditing:** Logs every reasoning step and tool call to a JSON-based audit trail for future evaluation.
 
 ### 📈 Team A: The Quant (Trading & Stocks) - *[V4 Active]*
-- **Agent Archetypes (V4):** Supports 4 distinct trading philosophies:
-    - **The Oak:** Long-term value investor.
-    - **The Hummingbird:** High-frequency momentum scalper.
-    - **The Maverick:** Aggressive contrarian.
-    - **The Oracle:** Hard-data fundamentalist.
-- **Price Oracle:** Real-time trade execution using **Alpaca API** with **yfinance** fallback.
 - **Adversarial Debate:** Employs Bull vs. Bear researchers to debate stock prospects.
+- **Earnings Analysis:** Dedicated node to parse and extract strategic insights from earnings transcripts.
+- **News Sentiment:** Real-time news ingestion and sentiment analysis via Finnhub.
+- **Agent Archetypes (V4):** Supports 4 distinct trading philosophies (Oak, Hummingbird, Maverick, Oracle).
 - **Risk Management:** Paper trading engine with a simulated $100k dummy portfolio.
 - **Vector Memory:** Saves trade rationale to ChromaDB to inform future decisions.
 
