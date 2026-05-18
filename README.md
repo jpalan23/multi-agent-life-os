@@ -27,12 +27,12 @@ It features an always-on WhatsApp interface, allowing you to trigger agents, que
 - **Milestone Checkpointing:** Persists task state to SQLite, allowing for seamless recovery after system crashes.
 - **Trajectory Auditing:** Logs every reasoning step and tool call to a JSON-based audit trail for future evaluation.
 
-### 📈 Team A: The Quant (Trading & Stocks) - *[V4 Active]*
-- **Autonomous Discovery:** Integrated **Market Scout** node that scans pre-market movers and unusual volume to suggest stocks for analysis.
-- **Alternative Data:** Ingests non-traditional signals from **Reddit sentiment** and **Google Analyst Search** (Motley Fool, Nasdaq, 24/7 Wall St).
-- **Adversarial Debate:** Employs Bull vs. Bear researchers to debate stock prospects using deep context.
-- **Risk Management:** Paper trading engine with a simulated $100k dummy portfolio.
-- **Vector Memory:** Saves trade rationale to ChromaDB to inform future decisions.
+### 📈 Team A: The Quant (Trading & Stocks) - *[V5 Active]*
+- **Autonomous Discovery:** Integrated **Market Scout** node that scans pre-market movers and unusual volume.
+- **Strawberry Economy (V5):** A gamified ecosystem where all trades are executed in **Strawberries (🍓)**. Each agent has its own balance and receives a **weekly allotment of 500 🍓**.
+- **Portfolio Manager (CIO):** A high-level strategist agent that analyzes the overall portfolio and user goals to set a mandatory "Portfolio Strategy" for all traders.
+- **Deep Intelligence:** Ingests **Earnings Transcripts**, **Reddit Sentiment**, and **Deep Web Research** (Motley Fool, Nasdaq).
+- **Agent Archetypes:** Supports 4 distinct philosophies (Oak, Hummingbird, Maverick, Oracle) that now align with the CIO's top-level guidance.
 
 ### 🚗 Team E: The DMV Tutor - *[V2 Active]*
 - **Vision PDF Parsing:** Uses `PyMuPDF` and `llava` to extract CA DMV handbook text and Road Sign images to generate dynamic quizzes.

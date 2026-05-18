@@ -125,5 +125,18 @@ class TaskQueueManager:
         if pending_tasks:
             print(f"[Queue] Restored {len(pending_tasks)} tasks from database.")
 
+    async def process_weekly_allotment(self):
+        """Adds 500 Strawberries to all agent portfolios every week."""
+        print("[Strawberry Economy] Processing weekly 500 🍓 allotment...")
+        try:
+            # Add 500 to existing balances
+            db.execute_query("UPDATE strawberry_portfolio SET strawberry_balance = strawberry_balance + 500.0, last_allotment_date = CURRENT_TIMESTAMP")
+            
+            # Record in task queue for visibility
+            await self.add_task("System", {"action": "weekly_allotment", "amount": 500}, priority=3)
+            print("[Strawberry Economy] Allotment complete.")
+        except Exception as e:
+            print(f"[Strawberry Economy] Allotment failed: {e}")
+
 # Global instance
 task_manager = TaskQueueManager()

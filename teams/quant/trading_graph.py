@@ -6,10 +6,12 @@ from langgraph.checkpoint.sqlite import SqliteSaver
 
 from teams.quant.state import QuantState
 from teams.quant.nodes import (
+    market_scout,
     market_analyst,
     fundamental_analyst,
     earnings_analyst,
     alternative_data_analyst,
+    portfolio_manager,
     bull_researcher,
     bear_researcher,
     trader_decision,
@@ -34,6 +36,7 @@ def build_quant_graph():
     builder.add_node("fundamental_analyst", fundamental_analyst)
     builder.add_node("earnings_analyst", earnings_analyst)
     builder.add_node("alternative_data_analyst", alternative_data_analyst)
+    builder.add_node("portfolio_manager", portfolio_manager)
     builder.add_node("bull_researcher", bull_researcher)
     builder.add_node("bear_researcher", bear_researcher)
     builder.add_node("trader_decision", trader_decision)
@@ -41,16 +44,21 @@ def build_quant_graph():
     builder.add_node("execution_agent", execution_agent)
     
     # Define edges
+    # Stage 1: Parallel Analysis
     builder.add_edge(START, "market_analyst")
     builder.add_edge(START, "fundamental_analyst")
     builder.add_edge(START, "earnings_analyst")
     builder.add_edge(START, "alternative_data_analyst")
     
-    # Start debate after all analysis is done
-    builder.add_edge("market_analyst", "bull_researcher")
-    builder.add_edge("fundamental_analyst", "bull_researcher")
-    builder.add_edge("earnings_analyst", "bull_researcher")
-    builder.add_edge("alternative_data_analyst", "bull_researcher")
+    # Stage 2: Strategy Layer (CIO)
+    # Portfolio manager needs the data from analysts to set strategy
+    builder.add_edge("market_analyst", "portfolio_manager")
+    builder.add_edge("fundamental_analyst", "portfolio_manager")
+    builder.add_edge("earnings_analyst", "portfolio_manager")
+    builder.add_edge("alternative_data_analyst", "portfolio_manager")
+    
+    # Stage 3: Persona Researchers
+    builder.add_edge("portfolio_manager", "bull_researcher")
     
     # Debate loop
     builder.add_edge("bull_researcher", "bear_researcher")

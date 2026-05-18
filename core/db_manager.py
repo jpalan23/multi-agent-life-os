@@ -34,26 +34,43 @@ class DBManager:
             summary TEXT
         );
 
-        -- Quant V2: Portfolio and Paper Trading
-        CREATE TABLE IF NOT EXISTS portfolio (
-            asset TEXT PRIMARY KEY,
-            quantity REAL NOT NULL,
-            average_price REAL DEFAULT 0.0,
-            last_updated DATETIME DEFAULT CURRENT_TIMESTAMP
+        -- Quant V2/V4: Strawberry Economy
+        CREATE TABLE IF NOT EXISTS strawberry_portfolio (
+            agent_name TEXT PRIMARY KEY,
+            strawberry_balance REAL DEFAULT 1000.0, -- Initial 1000 Strawberries
+            last_allotment_date DATETIME DEFAULT CURRENT_TIMESTAMP
         );
-        
-        -- Insert dummy money (100k USD) if not exists
-        INSERT OR IGNORE INTO portfolio (asset, quantity) VALUES ('USD', 100000.0);
 
-        CREATE TABLE IF NOT EXISTS trade_history (
+        CREATE TABLE IF NOT EXISTS strawberry_holdings (
+            agent_name TEXT NOT NULL,
+            ticker TEXT NOT NULL,
+            quantity REAL DEFAULT 0.0,
+            average_cost_strawberries REAL DEFAULT 0.0,
+            PRIMARY KEY(agent_name, ticker),
+            FOREIGN KEY(agent_name) REFERENCES strawberry_portfolio(agent_name)
+        );
+
+        CREATE TABLE IF NOT EXISTS strawberry_trade_history (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            agent_name TEXT NOT NULL,
             ticker TEXT NOT NULL,
             action TEXT NOT NULL, -- 'BUY' or 'SELL'
             quantity REAL NOT NULL,
-            price REAL NOT NULL,
+            strawberry_price REAL NOT NULL,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-            reasoning TEXT
+            reasoning TEXT,
+            FOREIGN KEY(agent_name) REFERENCES strawberry_portfolio(agent_name)
         );
+
+        CREATE TABLE IF NOT EXISTS user_goals (
+            goal_key TEXT PRIMARY KEY,
+            goal_description TEXT NOT NULL,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+
+        -- Initialize User Goals
+        INSERT OR IGNORE INTO user_goals (goal_key, goal_description) VALUES ('PRIMARY', 'Maximize long-term growth while maintaining a 20% safety buffer in strawberries.');
+        """
 
         -- Team B: The Career Catalyst
         CREATE TABLE IF NOT EXISTS applications (

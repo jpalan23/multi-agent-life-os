@@ -1,4 +1,4 @@
-from typing import TypedDict, Annotated, Sequence, Optional, List
+from typing import TypedDict, Annotated, Sequence, Optional, List, Dict
 import operator
 from langchain_core.messages import BaseMessage
 
@@ -10,12 +10,17 @@ class QuantState(TypedDict):
     # Discovery
     scanned_tickers: Optional[List[str]]
     
+    # User Context
+    user_goals: Optional[str]
+    portfolio_summary: Optional[Dict[str, Any]]
+    portfolio_strategy: Optional[str] # Set by Portfolio Manager
+    
     # Analyst outputs
     fundamental_data: Optional[str]
     market_data: Optional[str]
     news_data: Optional[str]
     earnings_insights: Optional[str]
-    alternative_data: Optional[str] # Reddit, Google Search, etc.
+    alternative_data: Optional[str]
     
     # Debate state
     bull_arguments: Optional[str]
@@ -24,10 +29,10 @@ class QuantState(TypedDict):
     max_debate_rounds: int
     
     # Simulation context
-    archetype: Optional[str] # "The Oak", "The Maverick", etc.
+    archetype: Optional[str]
     
     # Decisions
     risk_assessment: Optional[str]
     risk_approved: bool
-    final_decision: Optional[str] # "BUY", "SELL", "HOLD"
+    final_decision: Optional[str]
     execution_details: Optional[str]
