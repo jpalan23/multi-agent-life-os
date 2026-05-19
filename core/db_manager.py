@@ -70,7 +70,6 @@ class DBManager:
 
         -- Initialize User Goals
         INSERT OR IGNORE INTO user_goals (goal_key, goal_description) VALUES ('PRIMARY', 'Maximize long-term growth while maintaining a 20% safety buffer in strawberries.');
-        """
 
         -- Team B: The Career Catalyst
         CREATE TABLE IF NOT EXISTS applications (
